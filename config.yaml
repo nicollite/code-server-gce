@@ -1,0 +1,4 @@
+bind-addr: 0.0.0.0:8000
+auth: password
+password: alest-dev
+cert: false
