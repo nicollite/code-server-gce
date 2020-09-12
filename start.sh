@@ -1,26 +1,13 @@
-# This file is used to start code server on backgroud
+# This file is used to start or restart code server on background
+source utils.sh
 
-# Get a pid from a process with a running port
-function get-port-pid(){
-  port="$1"
-  processName="$2"
-  if [ -z "$1" ]; then exit ;fi
-  echo $(get-pid $(sudo lsof -n -i:$port -P | grep -E "$processName(.)*LISTEN\)"))
-}
+codeServerPidFile="code-server-pid.txt"
 
-# Get teh pid from the second argument of the lsof command
-function get-pid(){
-  echo $2
-}
+# Kill old code-server
+bash stop.sh
 
-# If a code server pid exists kill it
-codeServerPid=$(get-port-pid 8000)
-if [ -n "$codeServerPid" ]; then
-  printf "killing old code server pid: $codeServerPid \n\n"
-  sudo kill $codeServerPid
-else
-  printf "no code server pid found!\n\n"
-fi
+# Remove code server pid file if it's exists
+if [ -f $codeServerPidFile ]; then rm -f $codeServerPidFile; fi
 
 # Start a new code server
 printf "starting new code server on port 8000!\n\n"
@@ -30,11 +17,12 @@ sudo -E nohup code-server --config ./config.yaml > "code-server.log" 2>&1 &
 codeServerConfigPath=$(ls "`pwd`/config.yaml")
 printf "code-server config path `ls $codeServerConfigPath`\n$(cat $codeServerConfigPath) \n\n"
 
-# Sleep for 2 seconds and get the new 
-
-# pid for the code server
+# Sleep for 2 seconds and get the new pid for the code server
 sleep 2s
 newCodeServerPid=$(get-port-pid 8000)
+# Set the pid in the code-server-pid.txt file
+echo $newCodeServerPid > $codeServerPidFile
+
 codeServerPortMsg="code server running on port: $newCodeServerPid"
 echo $codeServerPortMsg >> code-server.log
 echo $codeServerPortMsg
